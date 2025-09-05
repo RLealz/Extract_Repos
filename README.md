@@ -1,4 +1,4 @@
-# Stars Dashboard
+# Stars Repo Extrator w/ simple Dashboard
 
 A Next.js application to explore a GitHub user's starred repositories with pagination and export to JSON/CSV. Built with modern, type-safe tooling and a clean architecture.
 
