@@ -85,8 +85,13 @@ export async function GET(req: NextRequest) {
         reset: reset ? Number(reset) : null,
       },
     });
-  } catch (error: any) {
-    const message = error?.issues?.[0]?.message || error?.message || "Unknown error";
+  } catch (error: unknown) {
+    const message =
+      typeof error === "object" && error !== null && "issues" in error
+        ? (error as any)?.issues?.[0]?.message
+        : error instanceof Error
+        ? error.message
+        : String(error);
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

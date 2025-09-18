@@ -38,33 +38,44 @@ function csvEscape(val: unknown): string {
   return s;
 }
 
-function toCSV(all: any[]): string {
-  const headers = [
-    "id",
-    "full_name",
-    "html_url",
-    "description",
-    "stargazers_count",
-    "language",
-    "owner_login",
-    "owner_html_url",
-  ];
-  const lines = [headers.join(",")];
-  for (const r of all) {
-    const row = [
-      csvEscape(r?.id),
-      csvEscape(r?.full_name ?? r?.name ?? ""),
-      csvEscape(r?.html_url ?? ""),
-      csvEscape(r?.description ?? ""),
-      csvEscape(r?.stargazers_count ?? ""),
-      csvEscape(r?.language ?? ""),
-      csvEscape(r?.owner?.login ?? ""),
-      csvEscape(r?.owner?.html_url ?? ""),
-    ];
-    lines.push(row.join(","));
-  }
-  return lines.join("\n") + "\n";
+interface RawRepo {
+  id?: number;
+  full_name?: string;
+  name?: string;
+  html_url?: string;
+  description?: string | null;
+  stargazers_count?: number;
+  language?: string | null;
+  owner?: { login?: string; html_url?: string };
 }
+
+function toCSV(all: RawRepo[]): string {
+   const headers = [
+     "id",
+     "full_name",
+     "html_url",
+     "description",
+     "stargazers_count",
+     "language",
+     "owner_login",
+     "owner_html_url",
+   ];
+   const lines = [headers.join(",")];
+   for (const r of all) {
+     const row = [
+       csvEscape(r?.id),
+       csvEscape(r?.full_name ?? r?.name ?? ""),
+       csvEscape(r?.html_url ?? ""),
+       csvEscape(r?.description ?? ""),
+       csvEscape(r?.stargazers_count ?? ""),
+       csvEscape(r?.language ?? ""),
+       csvEscape(r?.owner?.login ?? ""),
+       csvEscape(r?.owner?.html_url ?? ""),
+     ];
+     lines.push(row.join(","));
+   }
+   return lines.join("\n") + "\n";
+ }
 
 export async function POST(req: NextRequest) {
   try {
@@ -80,7 +91,7 @@ export async function POST(req: NextRequest) {
 
     let page = 1;
     const per_page = 100;
-    const all: any[] = [];
+    const all: RawRepo[] = [];
 
     for (let i = 0; i < 100; i++) {
       const url = `${GITHUB_API_BASE}/users/${encodeURIComponent(
@@ -125,8 +136,13 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({ ok: true, count: all.length, path: destPath, format: format ?? "json" });
-  } catch (error: any) {
-    const message = error?.issues?.[0]?.message || error?.message || "Unknown error";
-    return NextResponse.json({ error: message }, { status: 400 });
-  }
-}
+  } catch (error: unknown) {
+    const message =
+      typeof error === "object" && error !== null && "issues" in error
+        ? (error as any)?.issues?.[0]?.message
+        : error instanceof Error
+        ? error.message
+        : String(error);
+     return NextResponse.json({ error: message }, { status: 400 });
+   }
+ }

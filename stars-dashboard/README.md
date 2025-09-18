@@ -66,6 +66,9 @@ POST /api/export
 - GitHub rate limits: set GITHUB_TOKEN in .env.local
 - Network errors from API routes: verify internet access and token validity
 
+## Docs
+- Roadmap: [docs/ROADMAP.md](./docs/ROADMAP.md)
+
 ## Notes
 - Files exported by the API are written to the repository root (stars.json, stars.csv)
 - This project follows a mobile-first, accessible, and performance-minded approach
